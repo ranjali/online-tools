@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JWT Validator</title>
+    <style>
+        .box {
+            width: 100%;
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-family: monospace;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .output {
+            display: flex;
+            justify-content: space-between;
+        }
+        .output .box {
+            width: 48%;
+        }
+    </style>
+</head>
+<body>
+    <h1>JWT Validator</h1>
+    <label for="jwt">Enter JWT:</label>
+    <input type="text" id="jwt" placeholder="JWT Token">
+    
+    <label for="secret">Enter Base64 Secret:</label>
+    <input type="text" id="secret" placeholder="Base64 Secret">
+    
+    <button onclick="validateJWT()">Validate JWT</button>
+    
+    <div class="output">
+        <div class="box" id="headerBox">Header will appear here</div>
+        <div class="box" id="payloadBox">Payload will appear here</div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/jsrsasign@10.3.0/build/jsrsasign-all-min.js"></script>
+    <script>
+        function validateJWT() {
+            const jwt = document.getElementById('jwt').value;
+            const secret = document.getElementById('secret').value;
+
+            if (!jwt || !secret) {
+                alert("Please provide both JWT and Secret.");
+                return;
+            }
+
+            const [header, payload, signature] = jwt.split('.');
+
+            if (!header || !payload || !signature) {
+                alert("Invalid JWT format.");
+                return;
+            }
+
+            try {
+                // Decode the JWT header and payload using jsrsasign
+                const decodedHeader = JSON.parse(window.atob(header));
+                const decodedPayload = JSON.parse(window.atob(payload));
+
+                // Display header and payload in the boxes
+                document.getElementById('headerBox').textContent = JSON.stringify(decodedHeader, null, 2);
+                document.getElementById('payloadBox').textContent = JSON.stringify(decodedPayload, null, 2);
+
+                // Validate JWT signature
+                const isValid = KJUR.jws.JWS.verifyJWT(jwt, secret, { alg: ["HS256"] });
+
+                if (isValid) {
+                    alert("Signature is valid.");
+                } else {
+                    alert("Signature is invalid.");
+                }
+
+            } catch (e) {
+                alert("Error decoding JWT: " + e.message);
+            }
+        }
+    </script>
+</body>
+</html>
